@@ -59,23 +59,3 @@ def aduPairs(edgePairs):
 #     return(all_filtered_words)
 
 # words = removeStopwords(adus)
-
-# fdist = nltk.FreqDist(words)
-# print(fdist.most_common(10))
-
-
-# # unigrams create a list of lists of unigrams for example [[a,b,c,d], [e,g,r,t]]
-# def unigrams(adus):
-#     unigrams = []
-#     for i in adus:
-#         unigrams.append(word_tokenize(i[0]+i[1]))
-#     return (unigrams)
-
-
-# # bigrams create a list of lists of bigrams for example [[(a,b),(b,c)], [(e,g), (g,r)]]
-# def bigrams(adus):
-#     bigrams = []
-#     for i in adus:
-#         bigrams.append([b for l in i for b in zip(l.split(" ")[:-1], l.split(" ")[1:])])
-#     return(bigrams)
-

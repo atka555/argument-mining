@@ -2,62 +2,50 @@
 
 from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet as wn
+import spacy
 
-w1 = wn.synset('szkoła.n.01')
-w2 = wn.synset('dom.n.01')
-print(w1.wup_similarity(w2))
+nlp = spacy.load('pl_spacy_model')
+# http://zil.ipipan.waw.pl/SpacyPL
 
- 
-def tagged_to_synset(word, tag):
-    wn_tag = penn_to_wn(tag)
-    if wn_tag is None:
-        return None
- 
-    try:
-        return wn.synsets(word, wn_tag)[0]
-    except:
-        return None
- 
-def sentence_similarity(sentence1, sentence2):
-    """ compute the sentence similarity using Wordnet """
-    # Tokenize and tag
-    sentence1 = pos_tag(word_tokenize(sentence1))
-    sentence2 = pos_tag(word_tokenize(sentence2))
- 
-    # Get the synsets for the tagged words
-    synsets1 = [tagged_to_synset(*tagged_word) for tagged_word in sentence1]
-    synsets2 = [tagged_to_synset(*tagged_word) for tagged_word in sentence2]
- 
-    # Filter out the Nones
-    synsets1 = [ss for ss in synsets1 if ss]
-    synsets2 = [ss for ss in synsets2 if ss]
- 
-    score, count = 0.0, 0
- 
-    # For each word in the first sentence
-    for synset in synsets1:
-        # Get the similarity value of the most similar word in the other sentence
-        best_score = max([synset.path_similarity(ss) for ss in synsets2])
- 
-        # Check that the similarity could have been computed
-        if best_score is not None:
-            score += best_score
-            count += 1
- 
-    # Average the values
-    print(score)
-    print(count)
-    score /= count
-    return score
- 
-sentences = [
-    "Koty są super."
-]
- 
-focus_sentence = "Psy są pięknymi zwierzętami."
- 
-# for sentence in sentences:
-#     print ("Similarity(\"%s\", \"%s\") = %s" % (focus_sentence, sentence, sentence_similarity(focus_sentence, sentence)))
-#     print ("Similarity(\"%s\", \"%s\") = %s" % (sentence, focus_sentence, sentence_similarity(sentence, focus_sentence)))
 
- 
+# doc3 = nlp(u"psy")
+# print(doc3)
+# for token in doc3:
+#     print (token, token.lemma, token.lemma_)
+
+
+
+
+# semSimilarity takes two sentences, tokenize them, lemmatize words, then for every word in first sentence finds most 
+# similar word in second sentence; return list of max similarity for words
+def sentenceSimilarity (s1, s2):
+    lem1 = nlp(s1)
+    lem2 = nlp(s2)
+    maxSimilarity = []
+    for token1 in lem1:
+        if wn.synsets(token1.lemma_) != []:
+            wordSimilarity = []
+            word1 = wn.synsets(token1.lemma_)[0]
+            for token2 in lem2:
+                if wn.synsets(token2.lemma_) != []:
+                    word2 = wn.synsets(token2.lemma_)[0]
+                    wordSimilarity.append(word1.wup_similarity(word2))
+            wordSimilarityWNone = [x for x in wordSimilarity if x]
+            if len(wordSimilarityWNone) != 0:
+                maxSimilarity.append(max(wordSimilarityWNone))       
+    return maxSimilarity
+    
+# similarity takes two sentenes, returns sum of average value of two lists and divide this by two
+def similarity(s1, s2):
+    max1 = sentenceSimilarity(s1, s2)
+    max2 = sentenceSimilarity(s2, s1)
+
+    return (sum(max1) / float(len(max1)) + sum(max2) / float(len(max2))) / 2
+
+sentences = "słoń są super."
+focus_sentence = "psy śmieją pięknymi samochód."
+
+print(sentenceSimilarity(focus_sentence, sentences))
+print(sentenceSimilarity(sentences, focus_sentence))
+print(similarity(sentences, focus_sentence))
+print(similarity(focus_sentence, sentences))
