@@ -7,6 +7,10 @@ import nltk
 import glob
 from nltk.corpus import wordnet as wn
 import spacy
+import itertools
+import random
+import numpy as np
+from sklearn.utils import shuffle
 
 # from spacy.lang.pl import STOP_WORDS
 # sources: https://github.com/bieli/stopwords/blob/master/polish.stopwords.txt and https://github.com/stopwords-iso/stopwords-pl
@@ -31,7 +35,7 @@ def conclusionPremiseDict(premises, conclusions):
     return pairs
 
 '''
-    aduPairs create list of ADU pairs containing connected conclusion and premise [[conclusion, premise]]
+    aduPairs create list of ADU pairs containing connected conclusion and premise [[conclusion, premise]] with text not id
 '''
 def aduPairs(edgePairs, nodesById):
     aduPair = []
@@ -39,6 +43,7 @@ def aduPairs(edgePairs, nodesById):
         for p in pair['premises']:
           aduPair.append([nodesById[pair['conclusion']['toID']]['text'], nodesById[p['fromID']]['text']])
     return(aduPair)
+
 '''
     pairs creates conclusion - premise pairs for one map
 '''
@@ -49,7 +54,7 @@ def pairs(map):
     nodesById = {}
     for i, node in enumerate(data['nodes']):
         nodesById[node['nodeID']] = node
-
+    # pprint(nodesById)
     #Premises are nodes that have ingoing edges that are type 'RA' and outgoing edges that are type 'I'.
     premises = [x for x in data['edges'] if nodesById[x['fromID']]['type'] == 'I' and nodesById[x['toID']]['type'] == 'RA' ]
 
@@ -57,15 +62,38 @@ def pairs(map):
     conclusions = [x for x in data['edges'] if nodesById[x['toID']]['type'] == 'I' and nodesById[x['fromID']]['type'] == 'RA' ]
     edgePairs = conclusionPremiseDict(premises, conclusions)
     adus = aduPairs(edgePairs, nodesById)
-    return adus
+    return adus, conclusions, premises, nodesById
 
 '''
-    allPairs is list of all premise - conclusion pairs
+    comb makes combination of conclusions and premises lists and returns list of pairs that are not conclusion-premise pairs 
 '''
-allPairs = []
+
+def comb(conclusions, premises, l, nodesById):
+    combList = [(x,y) for x in conclusions for y in premises] 
+    smallCombList = []
+    for _ in range(l):
+        p = random.choice(combList)
+        smallCombList.append([nodesById[p[0]['toID']]['text'], nodesById[p[1]['fromID']]['text']])
+    return smallCombList
+
+
+'''
+    truePairs is list of all conclusion-premise pairs; falsePairs is list od conclusion-premise non pairs
+'''
+truePairs = []
+conclusions = []
+premises = []
+nodesById = {}
+
 for m in maps:
-    p = pairs(m)
-    allPairs.extend(p)
+    adus, c, p, n = pairs(m)
+    truePairs.extend(adus)
+    conclusions.extend(c)
+    premises.extend(p)
+    nodesById = {**nodesById, **n}
+
+falsePairs = comb(conclusions, premises, len(truePairs), nodesById)
+
 
 '''
      http://zil.ipipan.waw.pl/SpacyPL
@@ -100,9 +128,40 @@ def similarity(s1, s2):
     max1 = sentenceSimilarity(s1, s2)
     max2 = sentenceSimilarity(s2, s1)
 
-    return (sum(max1) / float(len(max1)) + sum(max2) / float(len(max2))) / 2
+    if float(len(max1)) == 0 or float(len(max2)) == 0:
+        return 0
+    else:
+        return (sum(max1) / float(len(max1)) + sum(max2) / float(len(max2))) / 2
 
-print(similarity(allPairs[0][0], allPairs[0][1]))
+simTruePairs = []
+trueLabels = []
+simFalsePairs = []
+falseLabels = []
+
+for p in truePairs:
+    # print(similarity(p[0], p[1]))
+    simTruePairs.append(similarity(p[0], p[1]))
+    trueLabels.append(1)
+
+for p in falsePairs:
+    # print(similarity(p[0], p[1]))
+    simFalsePairs.append(similarity(p[0], p[1]))
+    falseLabels.append(0)
+
+print(simTruePairs)
+print(simFalsePairs)
+
+simTruePairs.extend(simFalsePairs)
+trueLabels.extend(falseLabels)
+
+trainSamples = np.array(simTruePairs)
+trainLabels = np.array(trueLabels)
+trainLabels, trainSamples = shuffle(trainLabels, trainSamples)
+
+print(trainSamples)
+print(trainLabels)
+
+
 
 # removeStopwords remove words that are the most common words in any natural language, this function also removes punctuation
 # def removeStopwords(adus):
