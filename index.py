@@ -11,6 +11,7 @@ import itertools
 import random
 import numpy as np
 from sklearn.utils import shuffle
+import csv
 
 # from spacy.lang.pl import STOP_WORDS
 # sources: https://github.com/bieli/stopwords/blob/master/polish.stopwords.txt and https://github.com/stopwords-iso/stopwords-pl
@@ -25,7 +26,6 @@ maps = glob.glob("maps/*.json")
 def conclusionPremiseDict(premises, conclusions):
     pairs = {}
     for i, x in enumerate(conclusions):
-        # print (x)
         pairs[i] = {'conclusion':x, 'premises':[]}
         id_to = x['fromID']
         for p in premises:
@@ -52,9 +52,8 @@ def pairs(map):
         data = json.loads(f.read())
     #Creating nodesById dictionary which has nodeID as key and whole node as value for more efficient data extraction.
     nodesById = {}
-    for i, node in enumerate(data['nodes']):
+    for _, node in enumerate(data['nodes']):
         nodesById[node['nodeID']] = node
-    # pprint(nodesById)
     #Premises are nodes that have ingoing edges that are type 'RA' and outgoing edges that are type 'I'.
     premises = [x for x in data['edges'] if nodesById[x['fromID']]['type'] == 'I' and nodesById[x['toID']]['type'] == 'RA' ]
 
@@ -139,17 +138,12 @@ simFalsePairs = []
 falseLabels = []
 
 for p in truePairs:
-    # print(similarity(p[0], p[1]))
     simTruePairs.append(similarity(p[0], p[1]))
     trueLabels.append(1)
 
 for p in falsePairs:
-    # print(similarity(p[0], p[1]))
     simFalsePairs.append(similarity(p[0], p[1]))
     falseLabels.append(0)
-
-print(simTruePairs)
-print(simFalsePairs)
 
 simTruePairs.extend(simFalsePairs)
 trueLabels.extend(falseLabels)
@@ -158,11 +152,16 @@ trainSamples = np.array(simTruePairs)
 trainLabels = np.array(trueLabels)
 trainLabels, trainSamples = shuffle(trainLabels, trainSamples)
 
-print(trainSamples)
-print(trainLabels)
-
-
-
+'''
+    write data to .csv file
+'''
+myFile = open('data.csv', 'w')
+with myFile:    
+    myFields = ['similarity', 'feature']
+    writer = csv.DictWriter(myFile, fieldnames=myFields)    
+    writer.writeheader()
+    for i,j in zip(trainSamples,trainLabels):
+      writer.writerow({'similarity' : i, 'feature': j})
 # removeStopwords remove words that are the most common words in any natural language, this function also removes punctuation
 # def removeStopwords(adus):
 #     all_filtered_words = []
