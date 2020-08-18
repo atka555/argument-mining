@@ -13,10 +13,6 @@ import numpy as np
 from sklearn.utils import shuffle
 import csv
 
-# from spacy.lang.pl import STOP_WORDS
-# sources: https://github.com/bieli/stopwords/blob/master/polish.stopwords.txt and https://github.com/stopwords-iso/stopwords-pl
-
-
 maps = glob.glob("maps/*.json")
 
 '''
@@ -35,7 +31,7 @@ def conclusionPremiseDict(premises, conclusions):
     return pairs
 
 '''
-    aduPairs create list of ADU pairs containing connected conclusion and premise [[conclusion, premise]] with text not id
+    aduPairs create list of ADU pairs containing connected conclusion and premise [[conclusion, premise]] 
 '''
 def aduPairs(edgePairs, nodesById):
     aduPair = []

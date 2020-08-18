@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-# from tensorflow.python.keras.model import Sequential
 from tensorflow.keras.layers import Activation, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import categorical_crossentropy
@@ -29,8 +28,6 @@ trainLabels = np.array(labels[:len(samples)//2])
 testSamples = np.array(samples[len(samples)//2:])
 testLabels = np.array(labels[len(labels)//2:])
 
-# [:len(A)//2]
-# C = A[len(A)//2:]
 '''
   make model
 '''
