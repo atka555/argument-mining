@@ -162,12 +162,3 @@ with myFile:
     writer.writeheader()
     for i,j in zip(trainSamples,trainLabels):
       writer.writerow({'similarity' : i, 'feature': j})
-# removeStopwords remove words that are the most common words in any natural language, this function also removes punctuation
-# def removeStopwords(adus):
-#     all_filtered_words = []
-#     for i in adus:
-#         filtered_words = [word for word in word_tokenize(i[0]+i[1]) if word not in STOP_WORDS and word not in string.punctuation]
-#         all_filtered_words += filtered_words
-#     return(all_filtered_words)
-
-# words = removeStopwords(adus)

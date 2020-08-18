@@ -35,8 +35,9 @@ testLabels = np.array(labels[len(labels)//2:])
   make model
 '''
 model = tf.keras.Sequential([
-    Dense(units=16, input_shape=(1,), activation='relu'),
+    Dense(units=16, input_shape=(1,), activation='sigmoid'),
     Dense(units=32, activation='relu'),
+    Dense(units=64, activation='relu'),
     Dense(units=2, activation='softmax')
 ])
 model.summary()
@@ -44,21 +45,15 @@ model.summary()
 '''
   train model
 '''
-model.compile(optimizer=Adam(learning_rate=0.0001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-model.fit(x=trainSamples, y=trainLabels, validation_split=0.1,batch_size=10, epochs=50, shuffle=True, verbose=2)
+model.compile(optimizer=Adam(learning_rate=0.0007), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(x=trainSamples, y=trainLabels, validation_split=0.1, batch_size=15, epochs=100, shuffle=True, verbose=2)
 
 '''
   predictions
 '''
 predictions = model.predict(x=testSamples, batch_size=10, verbose=0)
 
-# for i in predictions:
-#     print(i)
-
 roundedPredictions = np.argmax(predictions, axis=-1)
-
-# for i in roundedPredictions:
-#   print(i)
 
 cm = confusion_matrix(y_true = testLabels, y_pred = roundedPredictions)
 
@@ -85,9 +80,9 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion Matrix,
                  color="white" if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.ylabel('Prawdziwe')
+    plt.xlabel('Przewidywane')
     plt.show()
 
-cm_plot_labels = ['not conclusion prediction pair', 'conclusion prediction pair']
-plot_confusion_matrix(cm=cm, classes=cm_plot_labels, title="Confusion matrix")
+cm_plot_labels = ['nie para', 'para']
+plot_confusion_matrix(cm=cm, classes=cm_plot_labels, title="Macierz pomyłek")
